@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Zufallsgenerator für Lehrer</title>
+
+    <link rel="manifest" href="manifest.json">
+
+    <link rel="apple-touch-icon" href="app-icon.png">
+
+    <style>
+        :root {
+            --primary: #4a6fa5;
+            --success: #2ec4b6;
+            --danger: #e71d36;
+            --dark: #011627;
+            --light: #f6f8fa;
+            --secondary: #6c757d;
+        }
+
+        * { box-sizing: border-box; }
+
+        html {
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--light);
+            color: var(--dark);
+            margin: 0;
+            padding: max(12px, env(safe-area-inset-top))
+                     max(12px, env(safe-area-inset-right))
+                     max(20px, env(safe-area-inset-bottom))
+                     max(12px, env(safe-area-inset-left));
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: clamp(16px, 4vw, 24px);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        h1, h2 { color: var(--primary); }
+        h1 { font-size: clamp(24px, 6vw, 32px); margin-top: 0; }
+        h2 { font-size: clamp(19px, 5vw, 24px); }
+        h3 { font-size: 18px; }
+
+        select, input, button {
+            min-height: 44px;
+            padding: 10px 12px;
+            font-size: 16px;
+            line-height: 1.2;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            margin: 5px 0;
+            font-family: inherit;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        select, input {
+            background: #fff;
+            color: inherit;
+        }
+
+        input[type="number"] {
+            width: 70px;
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        button:hover { opacity: 0.9; }
+        button:active { opacity: 0.75; transform: translateY(1px); }
+        button.danger { background-color: var(--danger); }
+        button.secondary { background-color: var(--secondary); }
+
+        .flex-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .flex-group > input[type="text"],
+        .flex-group > select {
+            flex: 1 1 220px;
+            min-width: 0;
+        }
+
+        .card {
+            border: 1px solid #e0e0e0;
+            padding: clamp(12px, 3vw, 16px);
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+
+        .student-list {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 0;
+        }
+
+        .student-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .student-item > span {
+            min-width: 0;
+            overflow-wrap: anywhere;
+        }
+
+        .student-item > div {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .student-item button {
+            min-height: 40px;
+            margin: 0;
+        }
+
+        .result-box {
+            font-size: clamp(20px, 6vw, 28px);
+            font-weight: bold;
+            text-align: center;
+            padding: 20px 12px;
+            background: #eef2f7;
+            border-radius: 8px;
+            margin: 15px 0;
+            color: var(--primary);
+            min-height: 75px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-wrap: anywhere;
+        }
+
+        .grid-groups {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .group-card {
+            background: #f0f4f8;
+            padding: 12px;
+            border-radius: 6px;
+            border-left: 4px solid var(--primary);
+            overflow-wrap: anywhere;
+        }
+
+        .backup-zone {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        #importFile {
+            display: none;
+        }
+
+        .hint {
+            font-size: 13px;
+            color: #555;
+            margin-top: 8px;
+        }
+
+        @media (max-width: 600px) {
+            body { padding: 10px; }
+
+            .container {
+                border-radius: 10px;
+                box-shadow: none;
+            }
+
+            .flex-group {
+                align-items: stretch;
+            }
+
+            .flex-group > * {
+                width: 100%;
+            }
+
+            .flex-group > input[type="number"] {
+                width: 100%;
+            }
+
+            .student-item {
+                align-items: flex-start;
+            }
+
+            .student-item > div {
+                flex-direction: column;
+            }
+
+            .backup-zone button {
+                width: 100%;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * { scroll-behavior: auto !important; transition: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🎲 Lehrer-Zufallsgenerator</h1>
+    
+    <!-- Klassenverwaltung -->
+    <div class="card">
+        <h2>🏫 Klassenverwaltung</h2>
+        <div class="flex-group">
+            <select id="classSelect" onchange="switchClass()">
+                <option value="">-- Klasse wählen --</option>
+            </select>
+            <button onclick="deleteClass()" class="danger">Klasse löschen</button>
+        </div>
+        <div class="flex-group" style="margin-top: 10px;">
+            <input type="text" id="newClassName" placeholder="Neue Klasse (z.B. 7a)">
+            <button onclick="createClass()">Klasse erstellen</button>
+        </div>
+    </div>
+
+    <!-- Schülerverwaltung -->
+    <div id="studentSection" class="card" style="display:none;">
+        <h2>👥 Schüler in dieser Klasse</h2>
+        <div class="flex-group">
+            <input type="text" id="newStudentName" placeholder="Name des Schülers">
+            <button onclick="addStudent()">Hinzufügen</button>
+        </div>
+        <ul id="studentList" class="student-list"></ul>
+    </div>
+
+    <!-- Aktionen / Funktionen -->
+    <div id="actionSection" class="card" style="display:none;">
+        <h2>⚡ Funktionen</h2>
+        
+        <!-- Einzelschüler auslosen -->
+        <div>
+            <h3>Einzelschüler auslosen</h3>
+            <button onclick="pickRandomStudent()" style="background-color: var(--success); font-size: 18px; width: 100%;">🎯 Zufälligen Schüler auswählen</button>
+            <div id="randomResult" class="result-box"></div>
+        </div>
+
+        <!-- Gruppen einteilen -->
+        <div style="margin-top: 25px;">
+            <h3>Gruppen einteilen</h3>
+            <div class="flex-group">
+                <label for="groupSize">Anzahl der Gruppen:</label>
+                <input type="number" id="groupSize" min="2" max="20" value="4" style="width: 60px;">
+                <button onclick="generateGroups()">Gruppen generieren</button>
+            </div>
+            <div id="groupsResult" class="grid-groups"></div>
+        </div>
+    </div>
+
+    <!-- Backup -->
+    <div class="card" style="background-color: #fafafa; border-style: dashed;">
+        <h2>💾 Datensicherung (Backup)</h2>
+        <p style="font-size: 14px; margin: 0 0 10px 0; color: #555;">Sichere deine Daten als Datei, um sie auf andere Geräte zu übertragen.</p>
+        <div id="storageStatus" class="hint" role="status" aria-live="polite"></div>
+        <div class="backup-zone">
+            <button onclick="exportData()" class="secondary">📤 Klassen exportieren</button>
+            <button onclick="document.getElementById('importFile').click()" class="secondary">📥 Backup importieren</button>
+            <input type="file" id="importFile" accept=".json" onchange="importData(event)">
+        </div>
+    </div>
+</div>
+
+<script>
+    /*
+     * Safari-/iOS-kompatible Version:
+     * - localStorage wird nur verwendet, wenn es wirklich verfügbar ist.
+     * - Export erfolgt über Blob/ObjectURL statt data:-URL.
+     * - Import nutzt FileReader und funktioniert über die Dateien-App.
+     * - Keine externen Bibliotheken oder Netzwerkzugriffe erforderlich.
+     */
+
+    const STORAGE_KEY = 'lehrerZufallData';
+    let schoolData = {};
+    let storageAvailable = false;
+
+    function testStorage() {
+        try {
+            const testKey = '__lz_test__';
+            localStorage.setItem(testKey, '1');
+            localStorage.removeItem(testKey);
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    function loadFromStorage() {
+        storageAvailable = testStorage();
+
+        if (!storageAvailable) {
+            schoolData = {};
+            setStorageStatus('Hinweis: Dieser Browser/Modus erlaubt keinen dauerhaften lokalen Speicher. Bitte regelmäßig ein Backup exportieren.');
+            return;
+        }
+
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            const parsed = raw ? JSON.parse(raw) : {};
+            schoolData = (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) ? parsed : {};
+            setStorageStatus('Daten werden automatisch im Browser gespeichert.');
+        } catch (e) {
+            schoolData = {};
+            setStorageStatus('Der lokale Speicher konnte nicht gelesen werden. Bitte ein Backup verwenden.');
+        }
+    }
+
+    function setStorageStatus(message) {
+        const el = document.getElementById('storageStatus');
+        if (el) el.textContent = message;
+    }
+
+    function saveToStorage() {
+        if (!storageAvailable) {
+            setStorageStatus('Lokaler Speicher nicht verfügbar – bitte ein Backup exportieren.');
+            return false;
+        }
+
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(schoolData));
+            setStorageStatus('Gespeichert.');
+            return true;
+        } catch (e) {
+            setStorageStatus('Speichern nicht möglich. Bitte ein Backup exportieren.');
+            return false;
+        }
+    }
+
+    function updateClassSelect() {
+        const select = document.getElementById('classSelect');
+        if (!select) return;
+
+        const currentSelection = select.value;
+        select.innerHTML = '<option value="">-- Klasse wählen --</option>';
+
+        Object.keys(schoolData).sort((a, b) => a.localeCompare(b, 'de')).forEach(className => {
+            const opt = document.createElement('option');
+            opt.value = className;
+            opt.textContent = className;
+            select.appendChild(opt);
+        });
+
+        if (Object.prototype.hasOwnProperty.call(schoolData, currentSelection)) {
+            select.value = currentSelection;
+        } else {
+            document.getElementById('studentSection').style.display = 'none';
+            document.getElementById('actionSection').style.display = 'none';
+        }
+    }
+
+    function createClass() {
+        const input = document.getElementById('newClassName');
+        if (!input) return;
+
+        const name = input.value.trim();
+        if (!name) {
+            alert('Bitte gib einen Klassennamen ein.');
+            return;
+        }
+
+        if (Object.prototype.hasOwnProperty.call(schoolData, name)) {
+            alert('Diese Klasse existiert bereits!');
+            return;
+        }
+
+        schoolData[name] = [];
+        saveToStorage();
+        updateClassSelect();
+        document.getElementById('classSelect').value = name;
+        switchClass();
+        input.value = '';
+    }
+
+    function deleteClass() {
+        const className = document.getElementById('classSelect').value;
+        if (!className) return;
+
+        if (confirm('Möchtest du die Klasse "' + className + '" wirklich unwiderruflich löschen?')) {
+            delete schoolData[className];
+            saveToStorage();
+            updateClassSelect();
+        }
+    }
+
+    function switchClass() {
+        const className = document.getElementById('classSelect').value;
+
+        if (!className) {
+            document.getElementById('studentSection').style.display = 'none';
+            document.getElementById('actionSection').style.display = 'none';
+            return;
+        }
+
+        document.getElementById('studentSection').style.display = 'block';
+        document.getElementById('actionSection').style.display = 'block';
+        document.getElementById('randomResult').textContent = '';
+        document.getElementById('groupsResult').innerHTML = '';
+        renderStudents();
+    }
+
+    function renderStudents() {
+        const className = document.getElementById('classSelect').value;
+        const list = document.getElementById('studentList');
+        if (!list || !schoolData[className]) return;
+
+        list.innerHTML = '';
+
+        schoolData[className].forEach((student, index) => {
+            const li = document.createElement('li');
+            li.className = 'student-item';
+
+            const span = document.createElement('span');
+            span.textContent = student;
+
+            const div = document.createElement('div');
+
+            const editBtn = document.createElement('button');
+            editBtn.type = 'button';
+            editBtn.textContent = '📝 Bearbeiten';
+            editBtn.onclick = function() { editStudent(index); };
+
+            const delBtn = document.createElement('button');
+            delBtn.type = 'button';
+            delBtn.textContent = '❌';
+            delBtn.className = 'danger';
+            delBtn.setAttribute('aria-label', 'Schüler löschen');
+            delBtn.onclick = function() { deleteStudent(index); };
+
+            div.appendChild(editBtn);
+            div.appendChild(delBtn);
+            li.appendChild(span);
+            li.appendChild(div);
+            list.appendChild(li);
+        });
+    }
+
+    function addStudent() {
+        const className = document.getElementById('classSelect').value;
+        const input = document.getElementById('newStudentName');
+        if (!input || !className) return;
+
+        const name = input.value.trim();
+        if (!name) return;
+
+        if (!schoolData[className]) schoolData[className] = [];
+        schoolData[className].push(name);
+        saveToStorage();
+        renderStudents();
+        input.value = '';
+        input.focus();
+    }
+
+    function editStudent(index) {
+        const className = document.getElementById('classSelect').value;
+        const currentName = schoolData[className][index];
+        const newName = prompt('Name bearbeiten:', currentName);
+
+        if (newName !== null && newName.trim() !== '') {
+            schoolData[className][index] = newName.trim();
+            saveToStorage();
+            renderStudents();
+        }
+    }
+
+    function deleteStudent(index) {
+        const className = document.getElementById('classSelect').value;
+        if (!schoolData[className]) return;
+
+        schoolData[className].splice(index, 1);
+        saveToStorage();
+        renderStudents();
+    }
+
+    function pickRandomStudent() {
+        const className = document.getElementById('classSelect').value;
+        const students = schoolData[className];
+        const resultBox = document.getElementById('randomResult');
+
+        if (!students || students.length === 0) {
+            resultBox.textContent = 'Keine Schüler in dieser Klasse!';
+            return;
+        }
+
+        const randomIndex = Math.floor(Math.random() * students.length);
+        resultBox.textContent = students[randomIndex];
+    }
+
+    function generateGroups() {
+        const className = document.getElementById('classSelect').value;
+        const sourceStudents = schoolData[className] || [];
+        const students = sourceStudents.slice();
+        const numGroups = parseInt(document.getElementById('groupSize').value, 10);
+        const container = document.getElementById('groupsResult');
+
+        if (!container) return;
+        container.innerHTML = '';
+
+        if (students.length === 0) {
+            alert('Keine Schüler zum Aufteilen vorhanden!');
+            return;
+        }
+
+        if (!Number.isInteger(numGroups) || numGroups < 2 || numGroups > 20) {
+            alert('Bitte eine Gruppenzahl zwischen 2 und 20 eingeben.');
+            return;
+        }
+
+        for (let i = students.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            const temp = students[i];
+            students[i] = students[j];
+            students[j] = temp;
+        }
+
+        const groups = Array.from({ length: Math.min(numGroups, students.length) }, () => []);
+
+        students.forEach((student, index) => {
+            groups[index % groups.length].push(student);
+        });
+
+        groups.forEach((group, index) => {
+            if (group.length === 0) return;
+
+            const groupCard = document.createElement('div');
+            groupCard.className = 'group-card';
+
+            const strong = document.createElement('strong');
+            strong.textContent = 'Gruppe ' + (index + 1);
+            groupCard.appendChild(strong);
+            groupCard.appendChild(document.createElement('br'));
+
+            group.forEach(student => {
+                groupCard.appendChild(document.createTextNode(student));
+                groupCard.appendChild(document.createElement('br'));
+            });
+
+            container.appendChild(groupCard);
+        });
+    }
+
+    function exportData() {
+        try {
+            const json = JSON.stringify(schoolData, null, 2);
+            const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+
+            link.href = url;
+            link.download = 'lehrer_zufallsgenerator_backup.json';
+            link.style.display = 'none';
+
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+
+            // Safari kann ObjectURLs etwas verzögert benötigen.
+            setTimeout(function() {
+                URL.revokeObjectURL(url);
+            }, 1000);
+
+            setStorageStatus('Backup wurde erstellt.');
+        } catch (e) {
+            // Fallback für Umgebungen, in denen Blob/ObjectURL eingeschränkt ist.
+            const dataUrl = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(schoolData));
+            const link = document.createElement('a');
+            link.href = dataUrl;
+            link.download = 'lehrer_zufallsgenerator_backup.json';
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        }
+    }
+
+    function importData(event) {
+        const input = event.target;
+        const file = input && input.files ? input.files[0] : null;
+        if (!file) return;
+
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+            try {
+                const importedData = JSON.parse(e.target.result);
+
+                if (!importedData || typeof importedData !== 'object' || Array.isArray(importedData)) {
+                    alert('Ungültiges Dateiformat.');
+                    return;
+                }
+
+                const validData = {};
+                Object.keys(importedData).forEach(function(className) {
+                    if (Array.isArray(importedData[className])) {
+                        validData[className] = importedData[className].map(String);
+                    }
+                });
+
+                if (confirm('Möchtest du das Backup importieren? Bestehende Klassen mit identischem Namen werden überschrieben.')) {
+                    Object.keys(validData).forEach(function(className) {
+                        schoolData[className] = validData[className];
+                    });
+
+                    saveToStorage();
+                    updateClassSelect();
+                    alert('Import erfolgreich!');
+                }
+            } catch (err) {
+                alert('Fehler beim Lesen der Backup-Datei.');
+            } finally {
+                input.value = '';
+            }
+        };
+
+        reader.onerror = function() {
+            alert('Die Backup-Datei konnte nicht gelesen werden.');
+            input.value = '';
+        };
+
+        reader.readAsText(file);
+    }
+
+    function setupKeyboardShortcuts() {
+        const classInput = document.getElementById('newClassName');
+        const studentInput = document.getElementById('newStudentName');
+
+        if (classInput) {
+            classInput.addEventListener('keydown', function(event) {
+                if (event.key === 'Enter') createClass();
+            });
+        }
+
+        if (studentInput) {
+            studentInput.addEventListener('keydown', function(event) {
+                if (event.key === 'Enter') addStudent();
+            });
+        }
+    }
+
+    window.addEventListener('DOMContentLoaded', function() {
+        loadFromStorage();
+        updateClassSelect();
+        setupKeyboardShortcuts();
+    });
+
+</script>
+
+</body>
+</html>
