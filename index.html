@@ -277,14 +277,11 @@
         <h2>⚡ Funktionen</h2>
         
         <!-- Einzelschüler auslosen -->
-    <div id="studentSection" class="card" style="display:none;">
-        <h2>👥 Schüler in dieser Klasse</h2>
-        <div class="flex-group">
-            <input type="text" id="newStudentName" placeholder="Name des Schülers">
-            <button onclick="addStudent()">Hinzufügen</button>
+           <div>
+            <h3>Einzelschüler auslosen</h3>
+            <button onclick="pickRandomStudent()" style="background-color: var(--success); font-size: 18px; width: 100%;">🎯 Zufälligen Schüler auswählen</button>
+            <div id="randomResult" class="result-box"></div>
         </div>
-        <ul id="studentList" class="student-list"></ul>
-    </div>
 
 <button id="ziehenBtn" onclick="schuelerZiehen()">🎯 Zufälligen Schüler auswählen</button>
 
