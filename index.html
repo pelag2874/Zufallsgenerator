@@ -277,11 +277,14 @@
         <h2>⚡ Funktionen</h2>
         
         <!-- Einzelschüler auslosen -->
-    <p>
-        <label>
-               <input type="checkbox" id="keineDoppelten"> Gezogene Schüler aus Runde entfernen (keine Doppelten)
-        </label>
-    </p>
+    <div id="studentSection" class="card" style="display:none;">
+        <h2>👥 Schüler in dieser Klasse</h2>
+        <div class="flex-group">
+            <input type="text" id="newStudentName" placeholder="Name des Schülers">
+            <button onclick="addStudent()">Hinzufügen</button>
+        </div>
+        <ul id="studentList" class="student-list"></ul>
+    </div>
 
 <button id="ziehenBtn" onclick="schuelerZiehen()">🎯 Zufälligen Schüler auswählen</button>
 
