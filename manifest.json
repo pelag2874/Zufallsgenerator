@@ -1,6 +1,6 @@
 {
-  "name": "Meine iPad App",
-  "short_name": "MeinApp",
+  "name": "Zufallsgenerator für Lehrer",
+  "short_name": "Zufallsgenerator",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#ffffff",
